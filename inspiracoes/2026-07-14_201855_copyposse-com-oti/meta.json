@@ -1,0 +1,19 @@
+{
+  "id": "copyposse-com-oti_2026-07-14_201855",
+  "url": "https://copyposse.com/oti/",
+  "titulo": "Own The Inbox | Email Marketing Playbook by Copy Posse ",
+  "data": "2026-07-14_201855",
+  "autor": "humbertolopes",
+  "nota": "referencia de email marketing",
+  "tags": [
+    "landing",
+    "email-marketing",
+    "dark-mode"
+  ],
+  "artefatos": {
+    "site": "site/",
+    "editavel": "editavel.html",
+    "screenshot": "screenshot.png",
+    "conteudo": "conteudo.md"
+  }
+}

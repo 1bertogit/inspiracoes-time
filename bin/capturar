@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+set -uo pipefail
+URL="${1:-}"
+NOTA="${2:-}"
+TAGS="${3:-}"
+if [ -z "$URL" ]; then echo "uso: bin/capturar <url> \"nota\" \"tags\""; exit 1; fi
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+HOST=$(echo "$URL" | sed -E 's#https?://##; s#/.*##')
+PATHPART=$(echo "$URL" | sed -E 's#https?://[^/]+##; s#/$##')
+SLUG=$(echo "${HOST}${PATHPART}" | sed -E 's#[^a-zA-Z0-9]+#-#g; s#-$##')
+STAMP=$(date +%Y-%m-%d_%H%M%S)
+DIR="$ROOT/inspiracoes/${STAMP}_${SLUG}"
+mkdir -p "$DIR"; cd "$DIR"
+echo "==> Capturando $URL"
+mkdir -p site && cd site
+wget -q -O _tmp.html "$URL" || echo "!! aviso: nao baixou pagina"
+DOMAINS=$(grep -oE '(https?:)?//[a-zA-Z0-9.-]+' _tmp.html 2>/dev/null | sed -E 's#https?:##; s#^//##' | sort -u | paste -sd, -)
+DOMAINS="$HOST,$DOMAINS"
+rm -f _tmp.html
+wget --mirror --convert-links --adjust-extension --page-requisites --no-parent -e robots=off --span-hosts --domains="$DOMAINS" --restrict-file-names=windows "$URL" >/dev/null 2>&1 || true
+INDEX="${HOST}${PATHPART}/index.html"
+[ -f "$INDEX" ] || INDEX=$(find "$HOST" -name 'index.html' 2>/dev/null | head -1)
+[ -f "$INDEX" ] || INDEX=$(find . -name 'index.html' 2>/dev/null | head -1)
+if [ -n "$INDEX" ] && [ -f "$INDEX" ]; then
+  LC_ALL=C sed -i '' 's#//static\.showit\.co#https://static.showit.co#g' "$INDEX" 2>/dev/null || true
+  LC_ALL=C sed -i '' -E 's#(src|href)="//#\1="https://#g' "$INDEX" 2>/dev/null || true
+  cp "$INDEX" "$(dirname "$INDEX")/editavel.html"
+  echo "site/$(dirname "$INDEX" | sed "s#^\./##")/editavel.html" > "$DIR/_editavel_path.txt"
+  echo "==> clone navegavel OK"
+else
+  echo "!! clone incompleto"
+fi
+cd "$DIR"
+TITULO="$HOST"
+if [ -n "${FIRECRAWL_API_KEY:-}" ]; then
+  echo "==> Chamando Firecrawl"
+  curl -s -X POST https://api.firecrawl.dev/v1/scrape -H "Authorization: Bearer $FIRECRAWL_API_KEY" -H 'Content-Type: application/json' -d "{\"url\":\"$URL\",\"formats\":[\"markdown\",\"links\",\"screenshot@fullPage\"]}" -o resultado.json
+  TITULO=$(python3 -c "import json;d=json.load(open('resultado.json'));print((d.get('data',d)).get('metadata',{}).get('title') or '$HOST')" 2>/dev/null || echo "$HOST")
+  python3 -c "import json;d=json.load(open('resultado.json'));open('conteudo.md','w').write((d.get('data',d)).get('markdown') or '')" 2>/dev/null && echo "==> conteudo.md OK"
+  SHOT=$(python3 -c "import json;d=json.load(open('resultado.json'));print((d.get('data',d)).get('screenshot') or '')" 2>/dev/null)
+  if [ -n "$SHOT" ]; then curl -s "$SHOT" -o screenshot.png && echo "==> screenshot.png OK"; fi
+else
+  echo "!! sem FIRECRAWL_API_KEY -> modo degradado"
+fi
+python3 "$ROOT/bin/_meta.py" "$URL" "$TITULO" "$STAMP" "$NOTA" "$TAGS" "$SLUG"
+echo ""
+echo "==> CAPTURA CONCLUIDA: $DIR"
+ls -1

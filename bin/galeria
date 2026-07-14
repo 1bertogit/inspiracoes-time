@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+python3 "$ROOT/bin/_galeria.py"
+open "$ROOT/galeria.html"
