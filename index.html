@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Acervo de Inspiracoes</title>
+  <link rel="stylesheet" href="assets/estilo.css">
+</head>
+<body>
+  <header>
+    <h1>Acervo de Inspiracoes <span class="cont" id="contador"></span></h1>
+    <div class="controles">
+      <input id="busca" placeholder="buscar por titulo, nota ou tag...">
+      <select id="ordenar">
+        <option value="recente">Mais recentes</option>
+        <option value="az">Titulo (A-Z)</option>
+      </select>
+    </div>
+    <div id="filtros"></div>
+  </header>
+  <div class="grid" id="grid"></div>
+  <script src="assets/app.js"></script>
+</body>
+</html>

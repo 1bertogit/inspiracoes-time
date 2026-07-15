@@ -1,4 +1,10 @@
+# resposta bruta do Firecrawl - nunca versionar
 resultado.json
-_tmp*.html
-.DS_Store
+
+# temporarios / backups
+*_tmp.html
 *.bak
+.DS_Store
+
+# galeria antiga v1 (substituida por index.html + dados.json)
+galeria.html
